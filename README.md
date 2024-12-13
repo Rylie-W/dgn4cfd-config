@@ -85,7 +85,7 @@ import dgn4cfd as dgn
 - Flow-Matching Graph Net (`dgn4cfd.nn.FlowMatchingGraphNet`)
 - Latent Flow-Matching Graph Net (`dgn4cfd.nn.LatentFlowMatchingGraphNet`)
 
-Details are available in Appendix B of our [paper]("https://openreview.net/pdf?id=uKZdlihDDn").
+Details are available in Appendix B of our [paper](https://openreview.net/pdf?id=uKZdlihDDn).
 
 DGN and LDGN architectures can be seamlessly adapted to the **flow-matching training** framework, benefiting from faster sampling. Thus, we have added **Flow-Matching Graph Nets (FMGNs)** and **Latent FMGNs** to DGN4CFD. We have observed that these outperform their diffusion-based counterparts when the number of denoising steps is limited to 10 or fewer. However, for $\sim20$ or more denoising steps, diffusion models demonstrate superior performance (Appendix D.7).
 
@@ -93,7 +93,7 @@ Weights are also available and can be loaded as illustrated in these notebooks: 
 
 ## Datasets
 
-All the datasets from our [paper]("https://openreview.net/pdf?id=uKZdlihDDn") can be downloaded directly within python using our `DatasetDownloader`:
+All the datasets from our [paper](https://openreview.net/pdf?id=uKZdlihDDn) can be downloaded directly within python using our `DatasetDownloader`:
 ```python
 import dgn4cfd as dgn
 
