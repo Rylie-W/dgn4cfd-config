@@ -1,4 +1,5 @@
 """
+    Train a Latent Diffusion Graph Network (LDGN) to predict the pressure field on a wing.
     Run with:
         python train_ldgn.py --experiment_id 0 --gpu 0
 """
@@ -26,7 +27,7 @@ experiment = {
         'name':        'MODEL_NAME',
         'autoencoder': './checkpoints/AE_NAME.chk',
         'depths':      [1,2,2,2],
-        'nt':          250,
+        'nt':          250, # Limit the length of the training simulations to 250 time-steps
     },
 }[args.experiment_id]
 

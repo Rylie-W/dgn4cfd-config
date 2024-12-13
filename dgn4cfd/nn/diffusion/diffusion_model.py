@@ -6,12 +6,13 @@ from torch.utils.tensorboard import SummaryWriter
 from typing import Tuple, Union
 from abc import abstractmethod
 from tqdm import tqdm
+from copy import deepcopy
 
 from .diffusion_process import DiffusionProcess, DiffusionProcessSubSet
 from .step_sampler import ImportanceStepSampler
 from ..model import Model
 from ...graph import Graph
-from ...loader import DataLoader
+from ...loader import DataLoader, Collater
 
 
 class DiffusionModel(Model):
@@ -249,6 +250,17 @@ class DiffusionModel(Model):
         steps:            list[int]    = None,
         dirichlet_values: torch.Tensor = None,
     ) -> torch.Tensor:
+        """Sample from the model.
+        
+        Args:
+            graph (Graph): The graph.
+            steps (list[int], optional): The steps to sample. If `None`, all steps are sampled. Defaults to `None`.
+            dirichlet_values (torch.Tensor, optional): The Dirichlet boundary conditions. If `None`, no Dirichlet boundary conditions are applied. Defaults to `None`.
+
+        Returns:
+            torch.Tensor: The sample.
+        """
+
         if steps is not None:
             assert all([isinstance(s, int) for s in steps]), 'steps must be a list of integers'
             # Sort the steps in ascending order
@@ -316,3 +328,44 @@ class DiffusionModel(Model):
             )
         else:
             return graph.field_r
+        
+    @torch.no_grad()    
+    def sample_n(
+        self,
+        num_samples:      int,
+        graph:            Graph,
+        dirichlet_values: torch.Tensor = None,
+        batch_size:       int = 0,
+        *args,
+        **kwargs,
+    ) -> torch.Tensor:
+        """Sample `num_samples` samples from the model.
+
+        Args:
+            num_samples (int): The number of samples.
+            graph (Graph): The graph.
+            dirichlet_values (torch.Tensor, optional): The Dirichlet boundary conditions. If `None`, no Dirichlet boundary conditions are applied. Defaults to `None`.
+            batch_size (int, optional): Number of samples to generate in parallel. If `batch_size < 2`, the samples are generated one by one. Defaults to `0`.
+
+        Returns:
+            torch.Tensor: The samples. Dimension: (num_nodes, num_samples, num_fields
+        """
+        samples = []
+        # Create (num_samples // num_workers) mini-batches with the same graph repeated num_workers times
+        if batch_size > 1:
+            collater = Collater()
+            num_evals = num_samples // batch_size + (num_samples % batch_size > 0)
+            for _ in tqdm(range(num_evals), desc=f"Generating {num_samples} samples", leave=False, position=0):
+                current_batch_size = min(batch_size, num_samples - len(samples))
+                batch = collater.collate([deepcopy(graph) for _ in range(current_batch_size)])
+                # Sample
+                sample = self.sample(batch, dirichlet_values=dirichlet_values.repeat(current_batch_size, 1) if dirichlet_values is not None else None, *args, **kwargs)
+                # Split base on the batch index
+                sample = torch.stack(sample.chunk(current_batch_size, dim=0), dim=1)
+                samples.append(sample)
+            return torch.cat(samples, dim=1)
+        else:
+            for _ in tqdm(range(num_samples), desc=f"Generating {num_samples} samples", leave=False, position=0):
+                sample = self.sample(graph, dirichlet_values, *args, **kwargs)
+                samples.append(sample)
+            return torch.stack(samples, dim=1) # Dimension: (num_nodes, num_samples, num_fields)

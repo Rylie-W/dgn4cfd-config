@@ -1,4 +1,5 @@
 """
+    Train a Latent Diffusion Graph Net (LDGN) to predict the pressure field on an ellipse.
     Run with:
         python train_ldgn.py --experiment_id 0 --gpu 0
 """
@@ -27,7 +28,7 @@ experiment = {
         'autoencoder': './checkpoints/AE_NAME',
         'depths':      [1,2],
         'width':       128,
-        'nt':          10,
+        'nt':          10, # Limit the length of the training simulations to 10 timesteps
     },
 }[args.experiment_id]
 
@@ -67,10 +68,10 @@ dataset = dgn.datasets.pOnEllipse(
     # The dataset can be downloaded from the web:
     path      = dgn.datasets.DatasetDownloader(dgn.datasets.DatasetUrl.pOnEllipseTrain).file_path,
     # Or you can directly provide the dataset path if already downloaded:
-    # path      = "DATASET_PATH",
-    T             = experiment['nt'],
-    transform     = transform,
-    preload       = True,
+    # path    = "DATASET_PATH",
+    T         = experiment['nt'],
+    transform = transform,
+    preload   = True,
 )
 dataloader = dgn.DataLoader(
     dataset     = dataset,

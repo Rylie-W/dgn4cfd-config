@@ -1,4 +1,5 @@
 """
+    Train a Variational Graph Autoencoder (VGAE). This is later used to train a Latent Diffusion/Flow-Matching Graph Net.
     Run with:
         python train_ae.py --experiment_id 0 --gpu 0
 """
@@ -29,7 +30,7 @@ experiment = {
         'latent_node_features': 1,
         'kl_reg':               1e-6,
         'depths':               [2,2,1],
-        'nt':                   10,
+        'nt':                   10, # Limit the length of the training simulations to 10 timesteps
     },
 }[args.experiment_id]
 

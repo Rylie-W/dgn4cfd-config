@@ -1,4 +1,5 @@
 """
+    Train a Latent Diffusion Graph Network (LDGN) to predict the velocity and pressure fields around an ellipse.
     Run with:
         python train_ldgn.py --experiment_id 0 --gpu 0
 """
@@ -28,7 +29,7 @@ experiment = {
         'autoencoder': './checkpoints/AE_MODEL.chk',
         'depths':      [1,2,2],
         'width':       128,
-        'nt':          10,
+        'nt':          10, # Limit the length of the training simulations to 10 timesteps
     },
 }[args.experiment_id]
 
@@ -63,10 +64,10 @@ transform = transforms.Compose([
     ),
 ])
 dataset = dgn.datasets.uvpAroundEllipse(
-    path          = dgn.datasets.DatasetDownloader(dgn.datasets.DatasetUrl.uvpAroundEllipseTrain).file_path,
-    T             = experiment['nt'],
-    transform     = transform,
-    preload       = False,
+    path      = dgn.datasets.DatasetDownloader(dgn.datasets.DatasetUrl.uvpAroundEllipseTrain).file_path,
+    T         = experiment['nt'],
+    transform = transform,
+    preload   = False,
 )
 dataloader = dgn.DataLoader(
     dataset     = dataset,

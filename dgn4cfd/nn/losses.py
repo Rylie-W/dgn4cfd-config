@@ -6,6 +6,7 @@ import math
 from torch_geometric.utils import scatter
 
 from .diffusion.diffusion_model import DiffusionModel
+from .flow_matching import FlowMatchingModel
 from .model import Model
 from .. import Graph
 
@@ -188,3 +189,27 @@ def batch_wise_mean(
         field = field.mean(dim=1) # Dimension: (num_nodes)
     batch_size = batch.max().item() + 1
     return scatter(field, batch, dim=0, dim_size=batch_size, reduce='mean') # Dimension: (batch_size)
+
+
+class FlowMatchingLoss(nn.Module):
+    r"""Loss function for the flow matching model.
+    
+        Args:
+            model (FlowMatchingModel): The flow matching model.
+            graph (Graph): The input graph.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(
+        self,
+        model: FlowMatchingModel,
+        graph: Graph,
+    ) -> torch.Tensor:
+        # Inference
+        pred_v = model(graph) # This is the predicted advection field
+        # Check the shapes
+        assert pred_v.shape == graph.advection_field.shape, f'output.shape = {pred_v.shape}, advection_field.shape = {graph.advection_field.shape}'
+        # Compute the loss
+        return batch_wise_mean((pred_v - graph.advection_field)**2, graph.batch) # Dimension: (batch_size)

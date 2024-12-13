@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from ..diffusion_model import DiffusionModel
-from ...blocks import SinusoidalEmbedding
+from ...blocks import SinusoidalPositionEmbedding
 from ...models.multi_scale_gnn import MultiScaleGnn
 from ...models.vgae import VGAE
 from ....graph import Graph
@@ -75,7 +75,7 @@ class LatentDiffusionGraphNet(DiffusionModel):
         self.scale_0 = len(self.autoencoder.arch['depths']) - 1
         # Diffusion-step embedding
         self.diffusion_step_embedding = nn.Sequential(
-            SinusoidalEmbedding(self.fnns_width),
+            SinusoidalPositionEmbedding(self.fnns_width),
             nn.Linear(self.fnns_width, self.emb_width),
             nn.SELU(),
         )

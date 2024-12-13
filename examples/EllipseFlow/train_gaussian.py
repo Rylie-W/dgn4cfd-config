@@ -1,4 +1,5 @@
 """
+    Train a Gaussian Mixtire Graph Neural Network to predict the veloity and pressure fields around an ellipse.
     Run with:
         python train_gaussian.py --experiment_id 0 --gpu 0
 """
@@ -27,7 +28,7 @@ experiment = {
         'name':     'MODEL_NAME',
         'depths':   [2,2,2,2,2],
         'width':    153,
-        'nt':       10,
+        'nt':       10, # Limit the length of the training simulations to 10 timesteps
     },
 }[args.experiment_id]
 

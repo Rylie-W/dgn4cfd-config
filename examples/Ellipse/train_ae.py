@@ -1,4 +1,5 @@
 """
+    This script trains a Variational Graph Autoencoder (VGAE) on the ellipse dataset. This autorncoder is later used to train latent diffusion/flow-matching models.
     Run with:
         python train_ae.py --experiment_id 0 --gpu 0
 """
@@ -29,7 +30,7 @@ experiment = {
         'kl_reg':               1e-6,
         'depths':               [2,2,1],
         'width':                128,
-        'nt':                   10,
+        'nt':                   10, # Limit the length of the training simulations to 10 timesteps
     },
 }[args.experiment_id]
 
@@ -69,10 +70,10 @@ dataset = dgn.datasets.pOnEllipse(
     # The dataset can be downloaded from the web:
     path      = dgn.datasets.DatasetDownloader(dgn.datasets.DatasetUrl.pOnEllipseTrain).file_path,
     # Or you can directly provide the dataset path if already downloaded:
-    # path      = "DATASET_PATH",
-    T             = experiment['nt'],
-    transform     = transform,
-    preload       = True,
+    # path    = "DATASET_PATH",
+    T         = experiment['nt'],
+    transform = transform,
+    preload   = True,
 )
 dataloader = dgn.DataLoader(
     dataset     = dataset,

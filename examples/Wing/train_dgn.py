@@ -1,4 +1,5 @@
 """
+    Train a Diffusion Graph Network (DGN) to predict the pressure field on a wing.
     Run with:
         python train_dgn.py --experiment_id 0 --gpu 0
 """
@@ -26,7 +27,7 @@ torch.manual_seed(seed)
 experiment = {
     0: {
         'name': 'MODEL_NAME',
-        'nt':    250,
+        'nt':    250, # Limit the length of the training simulations to 250 time-steps
     },
 }[args.experiment_id]
 
@@ -61,9 +62,9 @@ transform = transforms.Compose([
 ])
 dataset = dgn.datasets.pOnWing(
     path      = dgn.datasets.DatasetDownloader(dgn.datasets.DatasetUrl.pOnWingTrain).file_path,
-    T             = experiment['nt'],
-    transform     = transform,
-    preload       = False,
+    T         = experiment['nt'],
+    transform = transform,
+    preload   = False,
 )
 dataloader = dgn.DataLoader(
     dataset     = dataset,

@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from ..diffusion_model import DiffusionModel
-from ...blocks import SinusoidalEmbedding
+from ...blocks import SinusoidalPositionEmbedding
 from ...models.multi_scale_gnn import MultiScaleGnn
 from ....graph import Graph
 
@@ -58,7 +58,7 @@ class DiffusionGraphNet(DiffusionModel):
         self.out_node_features = self.in_node_features * 2 if self.learnable_variance else self.in_node_features
         # Diffusion-step embedding
         self.diffusion_step_embedding = nn.Sequential(
-            SinusoidalEmbedding(self.fnns_width),
+            SinusoidalPositionEmbedding(self.fnns_width),
             nn.Linear(self.fnns_width, self.emb_width),
             nn.SELU(),
         )

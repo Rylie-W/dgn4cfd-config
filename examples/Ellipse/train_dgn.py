@@ -1,4 +1,5 @@
 """
+    Train a Diffusion Graph Net (DGN) to predict the pressure field on an ellipse.
     Run with:
         python train_dgn.py --experiment_id 0 --gpu 0
 """
@@ -27,7 +28,7 @@ experiment = {
         'name':     'MODEL_NAME',
         'depths':   [2,2,2,2],
         'width':    128,
-        'nt':        10,
+        'nt':        10, # Limit the length of the training simulations to 10 timesteps
     },
 }[args.experiment_id]
 
@@ -67,7 +68,7 @@ dataset = dgn.datasets.pOnEllipse(
     # The dataset can be downloaded from the web:
     path      = dgn.datasets.DatasetDownloader(dgn.datasets.DatasetUrl.pOnEllipseTrain).file_path,
     # Or you can directly provide the dataset path if already downloaded:
-    # path      = "DATASET_PATH",
+    # path    = "DATASET_PATH",
     T         = experiment['nt'],
     transform = transform,
     preload   = True,
