@@ -143,7 +143,7 @@ def guillard_coarsening(
             raise RuntimeError(f'Maximum number of iterations reached in Guillard coarsening during cluster creation. The graph may contain isolated nodes.')
     idxHR_to_idxLR = torch.full((num_nodes,), -1, dtype=torch.long, device=edge_index.device)
     idxHR_to_idxLR[coarse_mask] = torch.arange(coarse_mask.sum(), device=edge_index.device)
-    idxHR_to_idxLR = idxHR_to_idxLR[parents] # This maps each high-res node (in high-res indices) to its parent node (in low-res indices
+    idxHR_to_idxLR = idxHR_to_idxLR[parents] # This maps each high-res node (in high-res indices) to its parent node (in low-res indices)
     return coarse_mask, idxHR_to_idxLR
 
 
