@@ -12,8 +12,13 @@
 </h6>
 
 ## About 
+<<<<<<< HEAD
 Fluid flows, are often poorly represented by a single mean solution. For many practical applications, it is crucial to **access the full distribution of possible flow states**, from which relevant statistics (e.g., RMS and two-point correlations) can be derived. 
 **Diffusion Graph Nets (DGNs)** enable direct sampling of these states via **flow matching** or **diffusion**-based denoising, given a **mesh** discretization of the system and its physical parameters. This allows for the **efficient computation of flow statistics** without running long and expensive numerical simulations.
+=======
+Fluid flows are often poorly represented by a single mean solution. For many practical applications, it is crucial to **access the full distribution of possible flow states**, from which relevant statistics (e.g., RMS and two-point correlations) can be derived. 
+**Diffusion Graph Nets (DGNs)** enable direct sampling of these states, given a **mesh** discretization of the system and its physical parameters. This allows for the **efficient computation of flow statistics** without running long and expensive numerical simulations.
+>>>>>>> 195577d0891b0624c60516474b45c1739948ce09
 
 <p align="center">
   <img src="https://i.ibb.co/G2JqcCN/DGN-Ellipse-Flow-compressed.gif"  width="800" />
@@ -39,7 +44,7 @@ DGNs can also work on a **compressed latent mesh**. Operating in this latent spa
   <img src="https://i.ibb.co/nmF8gvq/equilibrium2.png" width="900" />
 </p>
 
-(a) (L)DGNs learn the probability distribution of the systems' converged states provided only a short trajectory of length $\delta \ll T$ per system. (b) A preview of our turbulent wing experiment. The distribution learned by our LDGN model accurately captures the variance of all states (bottom right), despite seeing only an incomplete distribution for each wing during training (top right).
+(a) (L)DGNs learn the probability distribution of the systems' converged states provided only a short trajectory of length $\delta \ll T$ per system. (b) A preview of our turbulent wing experiment. The distribution learned by our LDGN model accurately captures the variance of all states (bottom right) despite seeing only an incomplete distribution for each wing during training (top right).
 
 <br>
 
@@ -54,7 +59,7 @@ DGN and LDGN show the best distributional accuracy.
 </p>
 
 
-For more reults and detailed methods check our [paper](https://openreview.net/pdf?id=uKZdlihDDn).
+For more results and detailed methods, check our [paper](https://openreview.net/pdf?id=uKZdlihDDn).
 
 
 ## Installation
@@ -75,7 +80,7 @@ import dgn4cfd as dgn
 
 ## Models
 
-DGN4CFD includes the following probabilistic models:
+**dgn4cfd** includes the following probabilistic models:
 - Diffusion Graph Net (`dgn4cfd.nn.DiffusionGraphNet`)
 - Latent Diffusion Graph Net (`dgn4cfd.nn.LatentDiffusionGraphNet`)
 - Vanilla Graph Net (`dgn4cfd.nn.VanillaGnn`)
@@ -85,7 +90,7 @@ DGN4CFD includes the following probabilistic models:
 - Flow-Matching Graph Net (`dgn4cfd.nn.FlowMatchingGraphNet`)
 - Latent Flow-Matching Graph Net (`dgn4cfd.nn.LatentFlowMatchingGraphNet`)
 
-Details available on Appendix B of our [paper]("https://openreview.net/pdf?id=uKZdlihDDn").
+Details are available in Appendix B of our [paper](https://openreview.net/pdf?id=uKZdlihDDn).
 
 DGN and LDGN architectures can be seamlessly adapted to the **flow-matching training** framework, benefiting from faster sampling. Thus, we have added **Flow-Matching Graph Nets (FMGNs)** and **Latent FMGNs** to DGN4CFD. We have observed that these outperform their diffusion-based counterparts when the number of denoising steps is limited to 10 or fewer. However, for $\sim20$ or more denoising steps, diffusion models demonstrate superior performance (Appendix D.7).
 
@@ -93,7 +98,7 @@ Weights are also available and can be loaded as illustrated in these notebooks: 
 
 ## Datasets
 
-All the datsets from our [paper]("https://openreview.net/pdf?id=uKZdlihDDn") can be downloaded directly within python using our `DatasetDownloader`:
+All the datasets from our [paper](https://openreview.net/pdf?id=uKZdlihDDn) can be downloaded directly within python using our `DatasetDownloader`:
 ```python
 import dgn4cfd as dgn
 
@@ -129,9 +134,9 @@ The datasets (`<DATASET NAME>`) available are (details on Appendix C):
   - uvpAroundEllipseThin
   - uvpAroundEllipseThick
 
-- **pOnWing task**: Infer pressure on the surface of a wing in 3D turbulent flow. The wing cross section is NACA 24XX airfoil. The geometry of the wings varies in terms of relative thickness, taper ratio, sweep angle, and twist angle. The training simulations have 251 time-steps each (`<LENGTH OF SIMULATIONS>`= 251) and the test simulations have 2501 time-steps each (`<LENGTH OF SIMULATIONS>`= 2501). The training and testing datasets are:
+- **pOnWing task**: Infer pressure on the surface of a wing in 3D turbulent flow. The wing cross section is NACA 24XX airfoil. The geometry of the wings varies in terms of relative thickness, taper ratio, sweep angle, and twist angle. The training simulations have 251 time-steps each (`<LENGTH OF SIMULATIONS>`= 251), and the test simulations have 2501 time-steps each (`<LENGTH OF SIMULATIONS>`= 2501). The training and testing datasets are:
   - pOnWingTrain (Training dataset, 6.52 GB)
   - pOnWingInDist
 
 ## Examples
-We recommend having a look the training scripts and jupyter notebooks on the [examples/](https://github.com/tum-pbs/dgn4cfd/blob/main/examples) folder.
+We recommend having a look at the training scripts and jupyter notebooks on the [examples/](https://github.com/tum-pbs/dgn4cfd/blob/main/examples) folder.
