@@ -12,13 +12,8 @@
 </h6>
 
 ## About 
-<<<<<<< HEAD
 Fluid flows, are often poorly represented by a single mean solution. For many practical applications, it is crucial to **access the full distribution of possible flow states**, from which relevant statistics (e.g., RMS and two-point correlations) can be derived. 
 **Diffusion Graph Nets (DGNs)** enable direct sampling of these states via **flow matching** or **diffusion**-based denoising, given a **mesh** discretization of the system and its physical parameters. This allows for the **efficient computation of flow statistics** without running long and expensive numerical simulations.
-=======
-Fluid flows are often poorly represented by a single mean solution. For many practical applications, it is crucial to **access the full distribution of possible flow states**, from which relevant statistics (e.g., RMS and two-point correlations) can be derived. 
-**Diffusion Graph Nets (DGNs)** enable direct sampling of these states, given a **mesh** discretization of the system and its physical parameters. This allows for the **efficient computation of flow statistics** without running long and expensive numerical simulations.
->>>>>>> 195577d0891b0624c60516474b45c1739948ce09
 
 <p align="center">
   <img src="https://i.ibb.co/G2JqcCN/DGN-Ellipse-Flow-compressed.gif"  width="800" />
