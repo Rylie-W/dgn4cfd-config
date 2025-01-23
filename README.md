@@ -2,7 +2,7 @@
 
 <h6 align="center">Official implementation of Diffusion Graph Nets from [<a href="https://openreview.net/pdf?id=uKZdlihDDn">📄 Research Paper</a>]</h6>
 
-<h4 align="center">Learning Distributions of Complex Fluid  Simulations with Diffusion Graph Networks</h4>
+<h4 align="center">Learning Distributions of Complex Fluid  Simulations with Diffusion Graph Networks (ICLR2025)</h4>
 
 <h6 align="center"><img src="https://i.ibb.co/NNvNGCz/pngfind-com-more-button-png-6671010.png" width="16"> <a href="https://qiauil.github.io/">Mario Lino</a>, <img src="https://i.ibb.co/3hc9dTt/google-deepmind-ea6c104d05.webp" width="14"> <a href="https://rachelcmy.github.io/">Tobias Pfaff</a> and <img src="https://i.ibb.co/NNvNGCz/pngfind-com-more-button-png-6671010.png" width="16"> <a href="https://ge.in.tum.de/about/n-thuerey/">Nils Thuerey</a></h6>
 
