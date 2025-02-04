@@ -27,12 +27,12 @@ def triangulation(
         tri.Triangulation: Triangulation with mask for boundary.
     """
     pos = pos.cpu()
-    bound = bound.cpu()
     # Create triangulation
     triang = tri.Triangulation(pos[:,0], pos[:,1])
     if bound is None:
         return triang
     else:
+        bound = bound.cpu()
         # Get bound values for each triangle
         bound_on_triang_vertices = bound[triang.triangles] # Dim: (num_triangles, 3)
         # Get triangles that are not on the boundary
