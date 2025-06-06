@@ -114,7 +114,51 @@ class GmmLoss(nn.Module):
         # Compute the negative log-likelihood
         loss = -log_sum_exp # Shape: (num_nodes, num_fields)
         return loss.mean()  
+
+class SimpleLoss(nn.Module):
+    """Simple loss function for diffusion models from the paper Improved Denoising Diffusion Probabilistic Models (https://arxiv.org/abs/2102.09672)."""
+
+    def __init__(
+        self
+    ) -> None:
+        super().__init__()
+
+    def forward(
+        self,
+        model: DiffusionModel,
+        graph: Graph,
+    ) -> torch.Tensor:
+        assert model.learnable_variance, 'HybridLoss requires learnable_variance = `True`'
+        # Compute the model output and the MSE loss between eps and noise
+        model_noise, model_v = model(graph)
+        se = (model_noise - graph.noise)**2 # Dimension: (num_nodes, num_output_features)
+        mse_term = batch_wise_mean(se, graph.batch) # Dimension: (batch_size)
+        return mse_term
     
+class VlbLoss(nn.Module):
+    """Hybrid loss function for diffusion models from the paper Improved Denoising Diffusion Probabilistic Models (https://arxiv.org/abs/2102.09672)."""
+
+    def __init__(
+        self,
+        lambda_vlb: float = 0.001,
+    ) -> None:
+        super().__init__()
+        self.lambda_vlb = lambda_vlb
+
+    def forward(
+        self,
+        model: DiffusionModel,
+        graph: Graph,
+    ) -> torch.Tensor:
+        assert model.learnable_variance, 'HybridLoss requires learnable_variance = `True`'
+        true_posterior_mean, true_posterior_variance = model.diffusion_process.get_posterior_mean_and_variance(graph.field_start, graph.field_r, graph.batch, graph.r)
+        # Compute the model output and the MSE loss between eps and noise
+        model_noise, model_v = model(graph)
+        # Freeze eps and compute the VLB loss
+        frozen_output = (model_noise.detach(), model_v)
+        model_posterior_mean, model_posterior_variance = model.get_posterior_mean_and_variance_from_output(frozen_output, graph)
+        vlb_term = self.lambda_vlb * self.vlb_loss(graph, true_posterior_mean, true_posterior_variance, model_posterior_mean, model_posterior_variance) # Dimension: (batch_size)
+        return vlb_term 
 
 class HybridLoss(nn.Module):
     """Hybrid loss function for diffusion models from the paper Improved Denoising Diffusion Probabilistic Models (https://arxiv.org/abs/2102.09672)."""

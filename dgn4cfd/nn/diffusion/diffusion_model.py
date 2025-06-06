@@ -7,6 +7,8 @@ from typing import Tuple, Union
 from abc import abstractmethod
 from tqdm import tqdm
 from copy import deepcopy
+from conflictfree.grad_operator import ConFIG_update
+from conflictfree.utils import get_gradient_vector,apply_gradient_vector
 
 from .diffusion_process import DiffusionProcess, DiffusionProcessSubSet
 from .step_sampler import ImportanceStepSampler
@@ -81,6 +83,7 @@ class DiffusionModel(Model):
         step_sampler = training_settings['step_sampler'](num_diffusion_steps = self.diffusion_process.num_steps)
         # Set the training loss
         criterion = training_settings['training_loss']
+        criterions = training_settings["training_losses"]
         # Load checkpoint
         checkpoint = None
         scheduler  = None
@@ -90,6 +93,9 @@ class DiffusionModel(Model):
             self.load_state_dict(checkpoint['weights'])
             optimiser = torch.optim.Adam(self.parameters(), lr=checkpoint['lr'])
             optimiser.load_state_dict(checkpoint['optimiser'])
+
+            config_optimiser = torch.optim.Adam(self.parameters(), lr=checkpoint['lr'])
+            config_optimiser.load_state_dict(checkpoint['optimiser'])
             if training_settings['scheduler'] is not None: 
                 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimiser, factor=training_settings['scheduler']['factor'], patience=training_settings['scheduler']['patience'], eps=0.)
                 scheduler.load_state_dict(checkpoint['scheduler'])
@@ -101,6 +107,7 @@ class DiffusionModel(Model):
                 print("Not matching check-point file:", training_settings['checkpoint'])
             print('Training from randomly initialised weights.')
             optimiser = optim.Adam(self.parameters(), lr=training_settings['lr'])
+            config_optimiser = optim.Adam(self.parameters(), lr=training_settings['lr'])
             if training_settings['scheduler'] is not None: scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimiser, factor=training_settings['scheduler']['factor'], patience=training_settings['scheduler']['patience'], eps=0.)
             initial_epoch = 1
         # If .chk to save exists rename the old version to .bck
@@ -152,19 +159,37 @@ class DiffusionModel(Model):
                     ) # Shapes (num_nodes, num_fields), (num_nodes, num_fields)
                     # Compute the loss for each sample in the batch
                     loss = criterion(self, graph) # Dimension: (batch_size)
+                    grads = []
+                    for loss_fn in criterions:
+                        config_optimiser.zero_grad()
+                        loss_i = loss_fn(self, graph)
+                        # Update the loss-aware diffusion-step sampler
+                        if isinstance(step_sampler, ImportanceStepSampler):
+                            step_sampler.update(graph.r, loss_i.detach())
+                        # Compute the weighted loss over the batch
+                        loss_i = (loss_i * sample_weight).mean()
+                        if training_settings['mixed_precision']:
+                            scaler.scale(loss_i).backward()
+                        else:
+                            loss_i.backward()
+                        grads.append(get_gradient_vector(self))
+
                     # Update the loss-aware diffusion-step sampler
-                    if isinstance(step_sampler, ImportanceStepSampler):
-                        step_sampler.update(graph.r, loss.detach())
+                    #if isinstance(step_sampler, ImportanceStepSampler):
+                        #step_sampler.update(graph.r, loss.detach())
                     # Compute the weighted loss over the batch
-                    loss = (loss * sample_weight).mean()
+                    #loss = (loss * sample_weight).mean()
+                """
                 # Back-propagation
                 if training_settings['mixed_precision']:
                     scaler.scale(loss).backward()
                 else:
                     loss.backward()
+                """
                 # Save training loss and gradients norm before applying gradient clipping to the weights
                 training_loss  += loss.item()
                 gradients_norm += self.grad_norm()
+                """
                 # Update the weights
                 if training_settings['mixed_precision']:
                     # Clip the gradients
@@ -180,6 +205,11 @@ class DiffusionModel(Model):
                     optimiser.step()
                 # Reset the gradients
                 optimiser.zero_grad()
+                """
+
+                g_config = ConFIG_update(self, grads)
+                apply_gradient_vector(self, g_config)
+                config_optimiser.step()
             training_loss  /= (iteration + 1)
             gradients_norm /= (iteration + 1)
             # Display on terminal

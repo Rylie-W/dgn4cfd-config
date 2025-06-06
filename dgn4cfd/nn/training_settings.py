@@ -37,6 +37,7 @@ class TrainingSettings():
         tensor_board:     str          = None,
         chk_interval:     int          = 1,
         training_loss:    Callable     = None,
+        training_losses:  list[Callable] = None,
         validation_loss:  Callable     = None,
         epochs:           int          = 1,
         batch_size:       int          = 1,
@@ -54,6 +55,7 @@ class TrainingSettings():
         self.tensor_board     = tensor_board
         self.chk_interval     = chk_interval
         self.training_loss    = training_loss
+        self.training_losses  = training_losses
         self.validation_loss  = validation_loss
         self.epochs           = epochs
         self.batch_size       = batch_size

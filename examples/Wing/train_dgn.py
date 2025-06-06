@@ -39,6 +39,7 @@ train_settings = dgn.nn.TrainingSettings(
     tensor_board  = './boards',
     chk_interval  = 1,
     training_loss = dgn.nn.losses.HybridLoss(),
+    training_losses = [dgn.nn.losses.SimpleLoss(), dgn.nn.losses.VlbLoss()],
     epochs        = 5000,
     batch_size    = 32,
     lr            = 1e-4,
@@ -46,7 +47,7 @@ train_settings = dgn.nn.TrainingSettings(
     scheduler     = {"factor": 0.1, "patience": 250, "loss": 'training'},
     stopping      = 1e-8,
     step_sampler  = dgn.nn.diffusion.ImportanceStepSampler,
-    device        = torch.device(f'cuda:{args.gpu}') if args.gpu >= 0 else torch.device('cpu'),
+    device        = torch.device('mps'),
 )
 
 # Training dataset
@@ -70,7 +71,7 @@ dataloader = dgn.DataLoader(
     dataset     = dataset,
     batch_size  = train_settings['batch_size'],
     shuffle     = True,
-    num_workers = 16,    
+    num_workers = 4,    
 )   
 
 # Diffusion process
@@ -95,6 +96,6 @@ model = dgn.nn.DiffusionGraphNet(
     learnable_variance = True,
     arch               = arch
 )
-
-# Training
-model.fit(train_settings, dataloader)
+if __name__ == "__main__":
+    # Training
+    model.fit(train_settings, dataloader)
