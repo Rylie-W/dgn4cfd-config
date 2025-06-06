@@ -159,6 +159,23 @@ class VlbLoss(nn.Module):
         model_posterior_mean, model_posterior_variance = model.get_posterior_mean_and_variance_from_output(frozen_output, graph)
         vlb_term = self.lambda_vlb * self.vlb_loss(graph, true_posterior_mean, true_posterior_variance, model_posterior_mean, model_posterior_variance) # Dimension: (batch_size)
         return vlb_term 
+    
+    @staticmethod
+    def vlb_loss(
+        graph: Graph,
+        true_posterior_mean:      torch.Tensor,
+        true_posterior_variance:  torch.Tensor,
+        model_posterior_mean:     torch.Tensor,
+        model_posterior_variance: torch.Tensor
+    ) -> torch.Tensor:
+        """Compute the KL divergence between the true and the model posterior"""
+        kl = normal_kl_divergence(true_posterior_mean, true_posterior_variance, model_posterior_mean, model_posterior_variance) # Dimension: (num_nodes, num_features)
+        kl = batch_wise_mean(kl, graph.batch)/math.log(2.0) # Dimension (batch_size)
+        if (graph.r == 0).any():
+            decoder_nll = F.gaussian_nll_loss(model_posterior_mean, graph.field_start, model_posterior_variance, reduction='none') # Dimension: (num_nodes, num_features)
+            decoder_nll = batch_wise_mean(decoder_nll, graph.batch) # Dimension (batch_size)
+            kl = torch.where((graph.r == 0), decoder_nll, kl)
+        return kl
 
 class HybridLoss(nn.Module):
     """Hybrid loss function for diffusion models from the paper Improved Denoising Diffusion Probabilistic Models (https://arxiv.org/abs/2102.09672)."""

@@ -40,6 +40,7 @@ train_settings = dgn.nn.TrainingSettings(
     tensor_board  = './boards',
     chk_interval  = 1,
     training_loss = dgn.nn.losses.HybridLoss(),
+    training_losses = [dgn.nn.losses.SimpleLoss(), dgn.nn.losses.VlbLoss()],
     epochs        = 5000,
     batch_size    = 64,
     lr            = 1e-4,

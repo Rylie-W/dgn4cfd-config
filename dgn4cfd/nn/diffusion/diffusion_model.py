@@ -175,10 +175,10 @@ class DiffusionModel(Model):
                         grads.append(get_gradient_vector(self))
 
                     # Update the loss-aware diffusion-step sampler
-                    #if isinstance(step_sampler, ImportanceStepSampler):
-                        #step_sampler.update(graph.r, loss.detach())
+                    if isinstance(step_sampler, ImportanceStepSampler):
+                        step_sampler.update(graph.r, loss.detach())
                     # Compute the weighted loss over the batch
-                    #loss = (loss * sample_weight).mean()
+                    loss = (loss * sample_weight).mean()
                 """
                 # Back-propagation
                 if training_settings['mixed_precision']:
@@ -207,7 +207,7 @@ class DiffusionModel(Model):
                 optimiser.zero_grad()
                 """
 
-                g_config = ConFIG_update(self, grads)
+                g_config = ConFIG_update(grads)
                 apply_gradient_vector(self, g_config)
                 config_optimiser.step()
             training_loss  /= (iteration + 1)
