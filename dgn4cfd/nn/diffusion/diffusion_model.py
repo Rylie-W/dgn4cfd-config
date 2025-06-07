@@ -3,13 +3,13 @@ import os
 import torch
 from torch import nn, optim
 from torch.utils.tensorboard import SummaryWriter
-from typing import Tuple, Union
+from typing import Optional, Sequence, Tuple, Union
 from abc import abstractmethod
 from tqdm import tqdm
 from copy import deepcopy
 from conflictfree.grad_operator import ConFIG_update
 from conflictfree.utils import get_gradient_vector,apply_gradient_vector
-
+from conflictfree.weight_model import WeightModel
 from .diffusion_process import DiffusionProcess, DiffusionProcessSubSet
 from .step_sampler import ImportanceStepSampler
 from ..model import Model
@@ -17,6 +17,31 @@ from ...graph import Graph
 from ...loader import DataLoader, Collater
 
 
+class ImbalancedWeightModel(WeightModel):
+    def __init__(self, weights: torch.Tensor):
+        super().__init__()
+        self.weights = weights
+
+    def get_weights(
+        self,
+        gradients: torch.Tensor,
+        device: Optional[Union[torch.device, str]] = None,
+        losses: Optional[Sequence] = None,
+    ) -> torch.Tensor:
+        assert gradients is not None, "The EqualWeight model requires gradients"
+        
+        # Ensure weights match the number of gradients
+        if self.weights.shape[0] != gradients.shape[0]:
+            # If weights are too few, pad with ones
+            if self.weights.shape[0] < gradients.shape[0]:
+                padding = torch.ones(gradients.shape[0] - self.weights.shape[0], device=self.weights.device)
+                self.weights = torch.cat([self.weights, padding])
+            # If weights are too many, truncate
+            else:
+                self.weights = self.weights[:gradients.shape[0]]
+        
+        return self.weights.to(device)
+    
 class DiffusionModel(Model):
     r"""Abstract class for diffusion models. This class implements the training loop and the sampling method. The forward pass must be implemented in the derived class.
 
@@ -139,6 +164,7 @@ class DiffusionModel(Model):
             print(f"Hyperparameters: lr = {optimiser.param_groups[0]['lr']}")
             self.train()
             training_loss = 0.
+            training_losses = [0. for _ in range(len(criterions))]
             gradients_norm = 0.
             for iteration, graph in enumerate(dataloader):
                 graph = graph.to(self.device)
@@ -160,6 +186,7 @@ class DiffusionModel(Model):
                     # Compute the loss for each sample in the batch
                     loss = criterion(self, graph) # Dimension: (batch_size)
                     grads = []
+                    losses = []
                     for loss_fn in criterions:
                         config_optimiser.zero_grad()
                         loss_i = loss_fn(self, graph)
@@ -168,6 +195,7 @@ class DiffusionModel(Model):
                             step_sampler.update(graph.r, loss_i.detach())
                         # Compute the weighted loss over the batch
                         loss_i = (loss_i * sample_weight).mean()
+                        losses.append(loss_i)
                         if training_settings['mixed_precision']:
                             scaler.scale(loss_i).backward()
                         else:
@@ -188,6 +216,7 @@ class DiffusionModel(Model):
                 """
                 # Save training loss and gradients norm before applying gradient clipping to the weights
                 training_loss  += loss.item()
+                training_losses = [l + loss_i.item() for l, loss_i in zip(training_losses, losses)]
                 gradients_norm += self.grad_norm()
                 """
                 # Update the weights
@@ -207,13 +236,16 @@ class DiffusionModel(Model):
                 optimiser.zero_grad()
                 """
 
-                g_config = ConFIG_update(grads)
+                g_config = ConFIG_update(grads, weight_model=ImbalancedWeightModel(torch.Tensor([1.0, 0.001])))
                 apply_gradient_vector(self, g_config)
                 config_optimiser.step()
             training_loss  /= (iteration + 1)
+            training_losses = [l / (iteration + 1) for l in training_losses]
             gradients_norm /= (iteration + 1)
             # Display on terminal
             print(f"Epoch: {epoch:4d}, Training loss: {training_loss:.4e}, Gradients: {gradients_norm:.4e}")
+            for loss_fn, loss in zip(criterions, training_losses):
+                print(f"Epoch: {epoch:4d}, {loss_fn.__class__.__name__}: {loss:.4e}")
             # Log in TensorBoard
             if training_settings['tensor_board'] is not None:
                 writer.add_scalar('Loss/train', training_loss,   epoch)
@@ -223,7 +255,7 @@ class DiffusionModel(Model):
             # Create training checkpoint
             if not epoch % training_settings["chk_interval"]:
                 print('Saving checkpoint in:', path)
-                self.save_checkpoint(path, epoch, optimiser, scheduler=scheduler, scaler=scaler)
+                self.save_checkpoint(path, epoch, config_optimiser, scheduler=scheduler, scaler=scaler)
         writer.close()
         print("Finished training")
         return

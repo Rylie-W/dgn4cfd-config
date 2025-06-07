@@ -47,7 +47,7 @@ train_settings = dgn.nn.TrainingSettings(
     scheduler     = {"factor": 0.1, "patience": 250, "loss": 'training'},
     stopping      = 1e-8,
     step_sampler  = dgn.nn.diffusion.ImportanceStepSampler,
-    device        = torch.device('mps'),
+    device        = "mps" if torch.backends.mps.is_available() else "cpu"
 )
 
 # Training dataset

@@ -157,7 +157,7 @@ class VlbLoss(nn.Module):
         # Freeze eps and compute the VLB loss
         frozen_output = (model_noise.detach(), model_v)
         model_posterior_mean, model_posterior_variance = model.get_posterior_mean_and_variance_from_output(frozen_output, graph)
-        vlb_term = self.lambda_vlb * self.vlb_loss(graph, true_posterior_mean, true_posterior_variance, model_posterior_mean, model_posterior_variance) # Dimension: (batch_size)
+        vlb_term = self.vlb_loss(graph, true_posterior_mean, true_posterior_variance, model_posterior_mean, model_posterior_variance) # Dimension: (batch_size)
         return vlb_term 
     
     @staticmethod

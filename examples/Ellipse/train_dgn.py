@@ -48,7 +48,7 @@ train_settings = dgn.nn.TrainingSettings(
     scheduler     = {"factor": 0.1, "patience": 50, "loss": 'training'},
     stopping      = 1e-8,
     step_sampler  = dgn.nn.diffusion.ImportanceStepSampler,
-    device        = torch.device(f'cuda:{args.gpu}') if args.gpu >= 0 else torch.device('cpu'),
+    device        = "mps" if torch.backends.mps.is_available() else "cpu"
 )
 
 # Training dataset
@@ -78,7 +78,7 @@ dataloader = dgn.DataLoader(
     dataset     = dataset,
     batch_size  = train_settings['batch_size'],
     shuffle     = True,
-    num_workers = 8,
+    num_workers = 0,
 )   
 
 # Diffusion process
